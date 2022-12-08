@@ -3,7 +3,8 @@
 ;;Natalia Lopez Osorio - 2025618
 ;;Carolain JImenez Bedoya - 2071368
 ;;Juan Steban Diaz - 2024147
-;;Hernando Lopez - 2022318
+;;Hernando Lopez Rincon - 2022318
+;;Gabriel Franco Betancourt - 2024200
 
 ;******************************************************************************************
 
@@ -46,7 +47,19 @@
 ;;                     <const-exp idsConst expsConst cuerpoConst>
 
 
+;;  <primitiva-binaria>   ::= + (primitiva-suma)
+;;                        ::= ~ (primitiva-resta)
+;;                        ::= / (primitiva-div)
+;;                        ::= * (primitiva-multi)
+;;                        ::= concat(primitiva-concat)
 
+;;  <primitiva-unaria>   ::= longitud(primitiva-longitud)
+;;                       ::= add1(primitiva-add1)
+;;                       ::= sub1(primitiva-sub1)
+
+;******************************************************************************************
+
+;******************************************************************************************
 
 
 ;******************************************************************************************
@@ -63,6 +76,7 @@
   (numero       ("-" digit (arbno digit)) number)
   (numero       (digit (arbno digit) "." digit (arbno digit)) number)
   (numero       ("-" digit (arbno digit) "." digit (arbno digit)) number)
+  (bool         ("true" (or "false")) symbol)
  )
 )
 
@@ -92,17 +106,62 @@
 
     (expresion ("procedimiento" "(" (separated-list identificador ",") ")" "haga" expresion "finProc" ) procedimiento-ex)
 
-    (expresion ( "evaluar"  expresion "("(separated-list expresion ",") ")" "finEval") app-exp)
+    (expresion ("evaluar"  expresion "("(separated-list expresion ",") ")" "finEval") app-exp)
 
     (expresion ("letrec" (arbno identificador "(" (separated-list identificador ",") ")" "=" expresion)  "in" expresion) letrec-exp)
 
-    (expresion ("var" "{" (arbno identificador = expresion ";") "}" "in" expresion) var-exp)
+    (expresion ("var" "{" (arbno identificador "=" expresion ";") "}" "in" expresion) var-exp)
     
-    (expresion ("cons" "{" (arbno identificador = expresion ";") "}" "in" expresion) cons-exp)
+    (expresion ("cons" "{" (arbno identificador "=" expresion ";") "}" "in" expresion) cons-exp)
 
+
+    ;;Primitiva Binaria
+
+    (primitiva-binaria ("+")      primitiva-suma)
     
+    (primitiva-binaria ("~")      primitiva-resta)
+    
+    (primitiva-binaria ("/")      primitiva-div)
+    
+    (primitiva-binaria ("*")      primitiva-multi)
+    
+    (primitiva-binaria ("%")      primitiva-mod)
+    
+    (primitiva-binaria ("concat") primitiva-concat)
+
+    ;;Primitiva Unaria
+
+    (primitiva-unaria ("longitud")  primitiva-longitud)
+    
+    (primitiva-unaria ("add1") primitiva-add1)
+    
+    (primitiva-unaria ("sub1") primitiva-sub1)
    
   )
 )
 
+;*******************************************************************************************
+;Tipos de datos para la sintaxis abstracta de la gramática construidos automáticamente:
 
+(sllgen:make-define-datatypes scanner-spec-simple-interpreter grammar-simple-interpreter)
+
+(define show-the-datatypes
+  (lambda ()
+    (sllgen:list-define-datatypes scanner-spec-simple-interpreter grammar-simple-interpreter)
+  )
+)
+
+;*******************************************************************************************
+;Parser, Scanner, Interfaz
+
+;El FrontEnd (Análisis léxico (scanner) y sintáctico (parser) integrados)
+
+(define scan&parse
+  (sllgen:make-string-parser scanner-spec-simple-interpreter grammar-simple-interpreter)
+)
+
+;El Analizador Léxico (Scanner)
+
+(define just-scan
+  (sllgen:make-string-scanner scanner-spec-simple-interpreter grammar-simple-interpreter)
+)
