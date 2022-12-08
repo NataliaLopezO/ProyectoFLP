@@ -55,6 +55,9 @@
 ;;                 ::= {{<identificador> = <expresion>} +(;) }
 ;;                     <registro idsReg expReg>
 
+;;                 ::= begin {<expresion>}+(;) end
+;;                     <secuencia expSec>
+
 
 ;;  <primitiva-binaria>   ::= + (primitiva-suma)
 ;;                        ::= ~ (primitiva-resta)
@@ -85,8 +88,6 @@
   (numero       ("-" digit (arbno digit)) number)
   (numero       (digit (arbno digit) "." digit (arbno digit)) number)
   (numero       ("-" digit (arbno digit) "." digit (arbno digit)) number)
-  (bool         ("true") symbol)
-  (bool         ("false") symbol)
  )
 )
 
@@ -105,8 +106,6 @@
     (expresion (identificador)   id-exp)
 
     (expresion ("\""texto"\"")   texto-lit)
-
-    (expresion (bool)  booleano)
     
     (expresion ("("expresion primitiva-binaria expresion")")   primapp-bin-exp)
        
@@ -131,6 +130,8 @@
     (expresion ("tupla" "[" (separated-list expresion ",") "]") tupla)
 
     (expresion ("{" "{"identificador "=" expresion "}"";" (arbno "{"identificador "=" expresion "}"";") "}") registro)
+
+    (expresion ("begin" "{" expresion (arbno expresion ";") "}" "end") secuencia-exp) 
 
 
     ;;Expresion bool
