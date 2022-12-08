@@ -46,6 +46,15 @@
 ;;                 ::= const {<identificador> = <expresion> }*(;) in <expresion>
 ;;                     <const-exp idsConst expsConst cuerpoConst>
 
+;;                 ::= [{<expresiones>} *(;)]
+;;                     <lista expsLista>
+
+;;                 ::= tupla[{<expresion>}*(;)]
+;;                     <tupla expsTupla>
+
+;;                 ::= {{<identificador> = <expresion>} +(;) }
+;;                     <registro idsReg expReg>
+
 
 ;;  <primitiva-binaria>   ::= + (primitiva-suma)
 ;;                        ::= ~ (primitiva-resta)
@@ -69,14 +78,14 @@
 (define scanner-spec-simple-interpreter
 '(
   (white-sp    (whitespace) skip)
-  (comentario     ("%" (arbno (not #\newline))) skip)
+  (comentario     ("#" (arbno (not #\newline))) skip)
   (identificador  ("@" letter (arbno (or letter digit))) symbol)
   (texto        (letter (arbno (or letter digit ":" "?" "=" "'" "#" "$" "&" "." "," ";" "*" "!" "¡" "¿" "-" "_"))) string)
   (numero       (digit (arbno digit)) number)
   (numero       ("-" digit (arbno digit)) number)
   (numero       (digit (arbno digit) "." digit (arbno digit)) number)
   (numero       ("-" digit (arbno digit) "." digit (arbno digit)) number)
-  (bool         ("true" (or "false")) symbol)
+
  )
 )
 
@@ -112,9 +121,37 @@
 
     (expresion ("var" "{" (arbno identificador "=" expresion ";") "}" "in" expresion) var-exp)
     
-    (expresion ("cons" "{" (arbno identificador "=" expresion ";") "}" "in" expresion) cons-exp)
+    (expresion ("const" "{" (arbno identificador "=" expresion ";") "}" "in" expresion) const-exp)
+
+    (expresion ("[" (separated-list expresion ",") "]") lista)
+
+    (expresion ("tupla" "[" (separated-list expresion ",") "]") tupla)
+
+    (expresion ("{" "{"identificador "=" expresion "}"";" (arbno "{"identificador "=" expresion "}"";") "}") registro)
 
 
+    ;;Expresion bool
+
+    (expresion-bool (pred-prim "("expresion "," expresion")") predicado-no-condicional)
+    (expresion-bool (oper-bin-bool "(" expresion-bool "," expresion-bool ")") predicado-condicional)
+
+
+    ;;pred-prim
+    (pred-prim ("<") pred-prim-menor)
+    (pred-prim (">") pred-prim-mayor)
+    (pred-prim ("<=") pred-prim-menor-igual)
+    (pred-prim (">=") pred-prim-mayor-igual)
+    (pred-prim ("==") pred-prim-igual)
+    (pred-prim ("!=") pred-prim-dif)
+
+    ;;oper-bin-bool
+    (oper-bin-bool ("and") and-oper-bool)
+    (oper-bin-bool ("or") or-oper-bool)
+
+    ;;oper-un-bool
+    (oper-un-bool ("not") not-oper-bool) 
+
+    
     ;;Primitiva Binaria
 
     (primitiva-binaria ("+")      primitiva-suma)
