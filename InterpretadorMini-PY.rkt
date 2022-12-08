@@ -28,7 +28,7 @@
 ;;                 ::= <primitiva-unaria>(<expression>)
 ;;                     <primapp-un-exp (prim-unaria exp)>
 
-;;                 ::= Si <expresion> entonces <expresion> sino <expression> finSI
+;;                 ::= if <expresion-bool> then {<expresion>} else {<expression>} end
 ;;                      <condicional-exp (test-exp true-exp false-exp)>
 
 ;;                 := procedimiento (<identificador>*',') haga <expresion> finProc
@@ -57,6 +57,12 @@
 
 ;;                 ::= begin {<expresion>}+(;) end
 ;;                     <secuencia expSec>
+
+;;                 ::= while <expresion-bool> do { <expresion>}done
+;;                     <while-exp expBoolWhile expWhile>
+
+;;                 ::= for <identificador> = <expresion>  to <expresion> do {<expresion>} done
+;;                     <for-exp idFor inicioFor finFor cuerpoFor>
 
 
 ;;  <primitiva-binaria>   ::= + (primitiva-suma)
@@ -111,7 +117,7 @@
        
     (expresion (primitiva-unaria "(" expresion ")")   primapp-un-exp)
 
-    (expresion ("Si" expresion "entonces" expresion "sino" expresion "finSI") condicional-exp)
+    (expresion ("if" expresion-bool "then""{" expresion "}""else""{" expresion "}" "end") condicional-exp)
 
     (expresion ("declarar" "(" (separated-list identificador "=" expresion ";") ")" "{" expresion "}" ) variableLocal-exp)
 
@@ -131,8 +137,11 @@
 
     (expresion ("{" "{"identificador "=" expresion "}"";" (arbno "{"identificador "=" expresion "}"";") "}") registro)
 
-    (expresion ("begin" "{" expresion (arbno expresion ";") "}" "end") secuencia-exp) 
+    (expresion ("begin" "{" expresion ";" (arbno expresion ";") "}" "end") secuencia-exp)
 
+    (expresion ("while" expresion-bool "do" "{" expresion "}" "done" ) while-exp)
+
+    (expresion ("for" identificador "=" expresion "to" expresion "do" "{" expresion "}""done") for-exp)
 
     ;;Expresion bool
 
