@@ -22,11 +22,8 @@
 ;;                 ::= <identificador>
 ;;                     <id-exp (id)>
 
-;;                 ::= (<expression><primitiva-binaria><expression>)
-;;                     <primapp-bin-exp (exp1 prim-binaria exp2)>
-
-;;                 ::= <primitiva-unaria>(<expression>)
-;;                     <primapp-un-exp (prim-unaria exp)>
+;;                 ::= <primitiva>(<expression>*(,))
+;;                     <primapp-exp (expPrim)>
 
 ;;                 ::= if <expresion-bool> then {<expresion>} else {<expression>} end
 ;;                      <condicional-exp (test-exp true-exp false-exp)>
@@ -64,16 +61,48 @@
 ;;                 ::= for <identificador> = <expresion>  to <expresion> do {<expresion>} done
 ;;                     <for-exp idFor inicioFor finFor cuerpoFor>
 
+;;                 ::= set <identificador> = <expresion>
+;;                     <set-exp idSet expSet> 
 
-;;  <primitiva-binaria>   ::= + (primitiva-suma)
-;;                        ::= ~ (primitiva-resta)
-;;                        ::= / (primitiva-div)
-;;                        ::= * (primitiva-multi)
-;;                        ::= concat(primitiva-concat)
+;;  <expresion-bool> ::= <pred-prim> ( <expresion> , <expresion> )
+;;                       <predicado-no-condicional expre1 expre2>
 
-;;  <primitiva-unaria>   ::= longitud(primitiva-longitud)
-;;                       ::= add1(primitiva-add1)
-;;                       ::= sub1(primitiva-sub1)
+;;                   ::= <oper-bin-bool> ( <expresion-bool> , <expresion-bool> )
+;;                      <predicado-bin-condicional expre1 expre2>
+
+;;                   ::= <oper-un-bool> (<expresion-bool> )
+;;                      <predicado-un-condicional expre>
+
+;;  <primitiva>   ::= + (primitiva-suma)
+;;                ::= ~ (primitiva-resta)
+;;                ::= / (primitiva-div)
+;;                ::= * (primitiva-multi)
+;;                ::= % (primitiva-mod)
+;;                ::= concat(primitiva-concat)
+;;                ::= longitud(primitiva-longitud)
+;;                ::= add1(primitiva-add1)
+;;                ::= sub1(primitiva-sub1)
+;;                ::= null (primitiva-null)
+;;                ::= null? (primitiva-null?)
+;;                ::= head (primitiva-head)
+;;                ::= tail (primitiva-tail)
+;;                ::= append (primitiva-append)
+;;                ::= lista? (primitiva-lista?)
+;;                ::= tupla? (primitiva-tupla?)
+;;                ::= registro? (primitiva-registro?)
+
+;; <pred-prim>    ::= < (pred-prim-menor)
+;;                ::= > (pred-prim-mayor)
+;;                ::= <= (pred-prim-menor-igual)
+;;                ::= >= (pred-prim-mayor-igual)
+;;                ::= == (pred-prim-igual)
+;;                ::= != (pred-prim-dif)
+
+;;<oper-bin-bool> ::= and (and-oper-bool)
+;;                ::= or (or-oper-bool)
+
+;;<oper-un-bool> ::= not (not-oper-bool) 
+
 
 ;******************************************************************************************
 
@@ -112,10 +141,12 @@
     (expresion (identificador)   id-exp)
 
     (expresion ("\""texto"\"")   texto-lit)
+
+    (expresion ("false") false-exp)
     
-    (expresion ("("expresion primitiva-binaria expresion")")   primapp-bin-exp)
-       
-    (expresion (primitiva-unaria "(" expresion ")")   primapp-un-exp)
+    (expresion ("true") true-exp)
+
+    (expresion (primitiva "(" (separated-list expresion ",") ")")  primapp-exp)
 
     (expresion ("if" expresion-bool "then""{" expresion "}""else""{" expresion "}" "end") condicional-exp)
 
@@ -139,6 +170,8 @@
 
     (expresion ("begin" "{" expresion ";" (arbno expresion ";") "}" "end") secuencia-exp)
 
+    (expression ("set" identificador "=" expresion) set-exp)
+
     (expresion ("while" expresion-bool "do" "{" expresion "}" "done" ) while-exp)
 
     (expresion ("for" identificador "=" expresion "to" expresion "do" "{" expresion "}""done") for-exp)
@@ -146,7 +179,8 @@
     ;;Expresion bool
 
     (expresion-bool (pred-prim "("expresion "," expresion")") predicado-no-condicional)
-    (expresion-bool (oper-bin-bool "(" expresion-bool "," expresion-bool ")") predicado-condicional)
+    (expresion-bool (oper-bin-bool "(" expresion-bool "," expresion-bool ")") predicado-bin-condicional)
+    (expresion-bool (oper-un-bool "(" expresion-bool ")") predicado-un-condicional ) 
 
 
     ;;pred-prim
@@ -165,27 +199,42 @@
     (oper-un-bool ("not") not-oper-bool) 
 
     
-    ;;Primitiva Binaria
+    ;;Primitiva
 
-    (primitiva-binaria ("+")      primitiva-suma)
-    
-    (primitiva-binaria ("~")      primitiva-resta)
-    
-    (primitiva-binaria ("/")      primitiva-div)
-    
-    (primitiva-binaria ("*")      primitiva-multi)
-    
-    (primitiva-binaria ("%")      primitiva-mod)
-    
-    (primitiva-binaria ("concat") primitiva-concat)
+    (primitiva ("+")      primitiva-suma)
+    (primitiva ("~")      primitiva-resta)
+    (primitiva ("/")      primitiva-div)
+    (primitiva ("*")      primitiva-multi)
+    (primitiva ("%")      primitiva-mod)
+    (primitiva ("concat") primitiva-concat)
+    (primitiva ("null") primitiva-null)
+    (primitiva ("null?") primitiva-null?)
+    (primitiva ("head") primitiva-head)
+    (primitiva ("tail") primitiva-tail)
+    (primitiva ("append") primitiva-append)
 
-    ;;Primitiva Unaria
+    (primitiva ("lista?") primitiva-lista?)
+    (primitiva ("tupla?") primitiva-tupla?)
+    (primitiva ("registro?") primitiva-registro?)
 
-    (primitiva-unaria ("longitud")  primitiva-longitud)
+    ;(primitiva ("cons") primitiva-crear-lista)
+    ;(primitiva ("tupla") primitiva-crear-tupla)
+    ;(primitiva ("") primitiva-crear-registro)
+
+    (primitiva ("longitud")  primitiva-longitud)
     
-    (primitiva-unaria ("add1") primitiva-add1)
+    (primitiva ("add1") primitiva-add1)
     
-    (primitiva-unaria ("sub1") primitiva-sub1)
+    (primitiva ("sub1") primitiva-sub1)
+
+    ;;Primitiva Lista
+    ;unaria vacio, vacio?, crear-lista, lista?, cabeza, cola
+    ;binaria append 
+
+    ;;Primitiva Tupla
+
+    ;;Primitiva Registro
+    
    
   )
 )
@@ -215,3 +264,4 @@
 (define just-scan
   (sllgen:make-string-scanner scanner-spec-simple-interpreter grammar-simple-interpreter)
 )
+
