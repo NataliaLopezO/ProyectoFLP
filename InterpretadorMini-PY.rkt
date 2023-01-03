@@ -209,40 +209,40 @@
     
     ;;Primitiva
 
+    ;;Primitiva numeros
+
     (primitiva ("+")      primitiva-suma)
     (primitiva ("~")      primitiva-resta)
     (primitiva ("/")      primitiva-div)
     (primitiva ("*")      primitiva-multi)
     (primitiva ("%")      primitiva-mod)
+    (primitiva ("add1")   primitiva-add1)
+    (primitiva ("sub1")   primitiva-sub1)
+
+    ;;Primitiva cadenas
+    
     (primitiva ("concat") primitiva-concat)
+    (primitiva ("longitud")  primitiva-longitud)
+
+    ;;Primitiva Listas y tuplas
+    
     (primitiva ("null") primitiva-null)
     (primitiva ("null?") primitiva-null?)
     (primitiva ("head") primitiva-head)
     (primitiva ("tail") primitiva-tail)
+
+    ;;primitiva lista
+    (primitiva ("lista?") primitiva-lista?)
+    (primitiva ("cons") primitiva-crear-lista)
     (primitiva ("append") primitiva-append)
 
-    (primitiva ("lista?") primitiva-lista?)
+    ;;primiiva tupla
     (primitiva ("tupla?") primitiva-tupla?)
+    (primitiva ("crear-tupla") primitiva-crear-tupla)
+
+    ;;primitiva registro
     (primitiva ("registro?") primitiva-registro?)
-
-    ;(primitiva ("cons") primitiva-crear-lista)
-    ;(primitiva ("tupla") primitiva-crear-tupla)
-    ;(primitiva ("") primitiva-crear-registro)
-
-    (primitiva ("longitud")  primitiva-longitud)
-    
-    (primitiva ("add1") primitiva-add1)
-    
-    (primitiva ("sub1") primitiva-sub1)
-
-    ;;Primitiva Lista
-    ;unaria vacio, vacio?, crear-lista, lista?, cabeza, cola
-    ;binaria append 
-
-    ;;Primitiva Tupla
-
-    ;;Primitiva Registro
-    
+    ;(primitiva ("registro") primitiva-crear-registro)    
    
   )
 )
@@ -332,7 +332,25 @@
       
       (false-exp () #f)
 
-      (primapp-exp (prim exp) (apply-primitiva prim exp env))
+      (primapp-exp (prim exp)
+                   (let ((args (eval-rands exp env)))
+                     (apply-primitiva prim args env)))
+
+      (lista (exp) (let ((args (eval-rands exp env)))
+                     (apply-lista args )))
+
+      (tupla (exp) (let ((args (eval-rands exp env)))
+                     (list (car args) (cadr args) )))
+
+      (registro (id exp list-id list-exp)
+                (let (
+                      (args (eval-rands list-exp env))
+                      (arg (eval-rand exp env))
+                      )
+                     (apply-registro id arg list-id args ))
+
+                ) 
+        
 
       (else #t)
 
@@ -342,28 +360,68 @@
    )
 )
 
+; funciones auxiliares para aplicar eval-expression a cada elemento de una 
+; lista de operandos (expresiones)
+(define eval-rands
+  (lambda (rands env)
+    (map (lambda (x) (eval-rand x env)) rands)))
+
+(define eval-rand
+  (lambda (rand env)
+    (eval-expresion rand env)))
+
+(define apply-lista
+  (lambda (exp)
+     exp
+    )
+  )
+
+(define apply-registro
+  (lambda (id arg list-id args)
+    (list (cons id list-id) (cons arg args))
+    
+    )
+  )
+
+
 (define apply-primitiva
   (lambda (prim exps env)
     
     (cases primitiva prim
       
-      (primitiva-suma () #t)
-      (primitiva-resta () #t)
-      (primitiva-div () #t)
-      (primitiva-multi () #t)
-      (primitiva-concat () #t)
-      (primitiva-mod () #t)
+      ;para numeros
+      
+      (primitiva-suma () (+ (car exps) (cadr exps)))
+      (primitiva-resta () (- (car exps) (cadr exps)))
+      (primitiva-div () (/ (car exps) (cadr exps)))
+      (primitiva-multi () (* (car exps) (cadr exps)))
+      (primitiva-mod () (modulo (car exps) (cadr exps)))
+      (primitiva-add1 () (+ (car exps) 1))
+      (primitiva-sub1 () (- (car exps) 1))
+      
+      ;para cadenas
+      (primitiva-concat () (string-append (car exps) (cadr exps) ))
+      (primitiva-longitud () (string-length (car exps)))
+
+      ;para listas y tuplas
       (primitiva-null () '())
       (primitiva-null? () (if (null? (car exps)) #t #f))
-      (primitiva-head () #t)
-      (primitiva-tail () #t)
-      (primitiva-append () #t)
-      (primitiva-lista? () #t)
-      (primitiva-tupla? () #t)
+      (primitiva-head () (car (car exps)))
+      (primitiva-tail () (cdr (car exps)))
+
+      ;para listas
+      (primitiva-lista? () (if (list? (car exps)) #t #f ))
+      (primitiva-append () (append (car exps) (cadr exps) ))
+      (primitiva-crear-lista () (cons (car exps) (cadr exps) ))
+
+      ;para tupla
+      (primitiva-tupla? () (if (list? (car exps)) #t #f ))
+      (primitiva-crear-tupla () (list (car exps) (cadr exps)) )
+
+      ;para registro      
       (primitiva-registro? () #t)
-      (primitiva-longitud () (string-length (eval-expresion exp env)))
-      (primitiva-add1 () (+ (eval-expresion (car exp) env) 1))
-      (primitiva-sub1 () (- (eval-expresion (car exp) env) 1))
+      ;(primitiva-crear-registro () #t)
+
       
      
     )
@@ -482,3 +540,20 @@
               (if (number? list-index-r)
                 (+ list-index-r 1)
                 #f))))))
+
+
+;;ejemplos
+
+;lista
+;head([1,2,3])
+;tail([1,2,3])
+;cons(2, [])
+
+;;tuplas
+;tupla[1,2,3]
+;head(tupla[2,3])
+;tail(tupla[1,2])
+
+;;registro
+;;{{@a=4}; {@c=5};}
+
