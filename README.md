@@ -9,9 +9,9 @@ Gabriel Franco Betancourt - 2024200
 
 ;******************************************************************************************
 
-;; La definición BNF para las expresiones del lenguaje:
+La definición BNF para las expresiones del lenguaje:
 
-;;  <programa>     ::= {<class-decl>}* <expresion>
+<programa>     ::= {<class-decl>}* <expresion>
 ;;                     <un-programa (class-decl exp)>
 
 ;; <class-decl>    ::= class <identificador> extends <identificador> {field <identificador>}* {<method-decl>}*
