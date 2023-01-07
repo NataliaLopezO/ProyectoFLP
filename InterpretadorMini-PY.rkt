@@ -9,11 +9,17 @@
 ;******************************************************************************************
 
 ;; La definición BNF para las expresiones del lenguaje:
-;;
-;;  <programa>     ::= <expresion>
-;;                     <un-programa (exp)>
 
-;;  <expresion>    ::= <numero>
+;;  <programa>     ::= {<class-decl>}* <expresion>
+;;                     <un-programa (class-decl exp)>
+
+;; <class-decl>    ::= class <identificador> extends <identificador> {field <identificador>}* {<method-decl>}*
+;;                     <a-class-decl(class-name super-name fields-ids method-decls)>
+
+;; <method-decl>   ::= method <identificador> ( {<identificador>}*(,) ) <expresion>
+;;                     <a-method-decl (method-name ids body)>
+
+;; <expresion>     ::= <numero>
 ;;                     <numero-lit  (num)>
 
 ;;                 := "\""<texto> "\""
@@ -28,18 +34,17 @@
 ;;                 ::= "true"
 ;;                     <true-exp>
 
-
 ;;                 ::= <primitiva>(<expression>*(,))
 ;;                     <primapp-exp (expPrim)>
 
 ;;                 ::= if <expresion-bool> then {<expresion>} else {<expression>} end
-;;                      <condicional-exp (test-exp true-exp false-exp)>
+;;                     <condicional-exp (test-exp true-exp false-exp)>
 
-;;                 := procedimiento (<identificador>*',') haga <expresion> finProc
-;;                    <procedimiento-ex (ids cuerpo)>
+;;                 :=  procedimiento (<identificador>*',') haga <expresion> finProc
+;;                     <procedimiento-ex (ids cuerpo)>
 
-;;                 := evaluar <expresion>(<expresion> ",")* finEval
-;;                    <app-exp(exp exps)>
+;;                 :=  evaluar <expresion>(<expresion> ",")* finEval
+;;                     <app-exp(exp exps)>
 
 ;;                 ::= letrec  {identifier ({identifier}*(,)) = <expression>}* in <expression>
 ;;                     <letrec-exp proc-names idss bodies bodyletrec>
@@ -69,54 +74,68 @@
 ;;                     <for-exp idFor inicioFor finFor cuerpoFor>
 
 ;;                 ::= set <identificador> = <expresion>
-;;                     <set-exp idSet expSet> 
+;;                     <set-exp idSet expSet>
 
-;;  <expresion-bool> ::= <pred-prim> ( <expresion> , <expresion> )
+;;                 ::= new <identificador> ({<expresion}*(,))
+;;                     <new-object-exp (class-name rands)>
+
+;;                 ::= send <expresion> <identificador> ({<expresion>}*(,))
+;;                     <method-app-exp (obj-exp method-name rands)>
+
+;;                 ::= super <identificador> ( {<expresion>}*(,))
+;;                    <super-call-exp (method-name rands)>
+
+;; <primitiva>     ::= + (primitiva-suma)
+;;                 ::= ~ (primitiva-resta)
+;;                 ::= / (primitiva-div)
+;;                 ::= * (primitiva-multi)
+;;                 ::= % (primitiva-mod)
+;;                 ::= concat(primitiva-concat)
+;;                 ::= longitud(primitiva-longitud)
+;;                 ::= add1(primitiva-add1)
+;;                 ::= sub1(primitiva-sub1)
+;;                 ::= null (primitiva-null)
+;;                 ::= null? (primitiva-null?)
+;;                 ::= head (primitiva-head)
+;;                 ::= head-list primitiva-head-list)
+;;                 ::= tail (primitiva-tail)
+;;                 ::= tail-list (primitiva-tail-list)
+;;                 ::= append (primitiva-append)
+;;                 ::= lista? (primitiva-lista?)
+;;                 ::= tupla? (primitiva-tupla?)
+;;                 ::= registro? (primitiva-registro?)
+
+;; <pred-prim>     ::= < (pred-prim-menor)
+;;                 ::= > (pred-prim-mayor)
+;;                 ::= <= (pred-prim-menor-igual)
+;;                 ::= >= (pred-prim-mayor-igual)
+;;                 ::= == (pred-prim-igual)
+;;                 ::= != (pred-prim-dif)
+
+;;<oper-bin-bool>  ::= and (and-oper-bool)
+;;                 ::= or (or-oper-bool)
+
+;;<oper-un-bool>   ::= not (not-oper-bool) 
+
+
+;;<expresion-bool> ::= <pred-prim> ( <expresion> , <expresion> )
 ;;                       <predicado-no-condicional expre1 expre2>
 
-;;                   ::= <oper-bin-bool> ( <expresion-bool> , <expresion-bool> )
+;;                 ::= <oper-bin-bool> ( <expresion-bool> , <expresion-bool> )
 ;;                      <predicado-bin-condicional expre1 expre2>
 
-;;                   ::= <oper-un-bool> (<expresion-bool> )
+;;                 ::= <oper-un-bool> (<expresion-bool> )
 ;;                      <predicado-un-condicional expre>
 
-;;  <primitiva>   ::= + (primitiva-suma)
-;;                ::= ~ (primitiva-resta)
-;;                ::= / (primitiva-div)
-;;                ::= * (primitiva-multi)
-;;                ::= % (primitiva-mod)
-;;                ::= concat(primitiva-concat)
-;;                ::= longitud(primitiva-longitud)
-;;                ::= add1(primitiva-add1)
-;;                ::= sub1(primitiva-sub1)
-;;                ::= null (primitiva-null)
-;;                ::= null? (primitiva-null?)
-;;                ::= head (primitiva-head)
-;;                ::= tail (primitiva-tail)
-;;                ::= append (primitiva-append)
-;;                ::= lista? (primitiva-lista?)
-;;                ::= tupla? (primitiva-tupla?)
-;;                ::= registro? (primitiva-registro?)
 
-;; <pred-prim>    ::= < (pred-prim-menor)
-;;                ::= > (pred-prim-mayor)
-;;                ::= <= (pred-prim-menor-igual)
-;;                ::= >= (pred-prim-mayor-igual)
-;;                ::= == (pred-prim-igual)
-;;                ::= != (pred-prim-dif)
-
-;;<oper-bin-bool> ::= and (and-oper-bool)
-;;                ::= or (or-oper-bool)
-
-;;<oper-un-bool> ::= not (not-oper-bool) 
 
 
 ;******************************************************************************************
 
 ;******************************************************************************************
 
-
 ;******************************************************************************************
+
 
 ;Especificación Léxica
 
@@ -144,6 +163,8 @@
     ;;class-decl
     
     (class-decl ("class" identificador "extends" identificador (arbno "field" identificador ) (arbno method-decl)) a-class-decl)
+
+    ;;method-decl
 
     (method-decl ("method" identificador "("  (separated-list identificador  ",") ")" expresion )  a-method-decl)
 
@@ -196,15 +217,12 @@
 
     (expresion ("for" identificador "=" expresion "to" expresion "do" "{" expresion "}""done") for-exp)
 
-   
 
     ;;Expresion bool
 
     (expresion-bool (pred-prim "("expresion "," expresion")") predicado-no-condicional)
     (expresion-bool (oper-bin-bool "(" expresion-bool "," expresion-bool ")") predicado-bin-condicional)
     (expresion-bool (oper-un-bool "(" expresion-bool ")") predicado-un-condicional )
-    ;(expresion-bool ("false") false-exp-bool)
-    ;(expresion-bool ("true") true-exp-bool)
 
     ;;pred-prim
     (pred-prim ("<") pred-prim-menor)
@@ -245,8 +263,6 @@
     
     (primitiva ("null") primitiva-null)
     (primitiva ("null?") primitiva-null?)
-    (primitiva ("head") primitiva-head)
-    (primitiva ("tail") primitiva-tail)
 
     ;;primitiva lista
     (primitiva ("lista?") primitiva-lista?)
@@ -254,15 +270,23 @@
     (primitiva ("append") primitiva-append)
     (primitiva ("ref-list") primitiva-ref-list)
     (primitiva ("set-list") primitiva-set-list)
+    (primitiva ("head-list") primitiva-head-list)
+    (primitiva ("tail-list") primitiva-tail-list)
+    ;falta tail
 
     ;;primiiva tupla
     (primitiva ("tupla?") primitiva-tupla?)
     (primitiva ("crear-tupla") primitiva-crear-tupla)
     (primitiva ("ref-tupla") primitiva-ref-tupla)
+    (primitiva ("head") primitiva-head)
+    (primitiva ("tail") primitiva-tail)
 
     ;;primitiva registro
     (primitiva ("registro?") primitiva-registro?)
-    ;(primitiva ("registro") primitiva-crear-registro)    
+    (primitiva ("registro") primitiva-crear-registro)
+    (primitiva ("ref-registro") primitiva-ref-registro)
+    (primitiva ("set-registro") primitiva-set-registro)
+    
    
   )
 )
@@ -335,17 +359,6 @@
   )
 )
 
-;**************************************************************************************
-;Definición tipos de datos referencia y blanco
-
-(define-datatype target target?
-  (direct-target (expval expval?))
-  (indirect-target (ref ref-to-direct-target?)))
-
-(define-datatype reference reference?
-  (a-ref (position integer?)
-         (vec vector?)))
-
 
 ;eval-expresion: <expresion> <enviroment> ->  
 ; evalua la expresión en el ambiente de entrada, para cada caso (numero-lit,var-exp,texto-lit, condicional-exp, variableLocal-exp
@@ -354,9 +367,9 @@
 (define eval-expresion
   (lambda (exp env)
     (cases expresion exp
-      
+     
       (numero-lit (numero) numero)
-      
+  
       (id-exp (id)(apply-env env id)
 
 ;              (let ((var (apply-env env id)))
@@ -369,27 +382,70 @@
 ;                   )
        )
       
-      
       (texto-lit (txt) txt)
 
       (true-exp () #t)
       
       (false-exp () #f)
 
-      (primapp-exp (prim exp)
-                   (let ((args (eval-primapp-exp-rands exp env)))
-                     (apply-primitiva prim args env)))
+      (primapp-exp (prim exp)                   
+
+                   (cases primitiva prim
+
+                       ;Para Registros
+                       (primitiva-ref-registro () (let
+                                                      (
+                                                       (ids (vector->list (car (eval-expresion (car exp) env))) )
+                                                       (vals (vector->list (cadr (eval-expresion (car exp) env))) )
+                                                       )
+                                                    (eval-expresion (cadr exp) (extend-env ids vals env) )
+                                                    
+                        )
+                      )
+
+                     (primitiva-set-registro () (let
+                                                      (
+                                                       (ids (vector->list (car (eval-expresion (car exp) env))) )
+                                                       (vals (vector->list (cadr (eval-expresion (car exp) env))) )
+                                                       (dic (eval-expresion (car exp)   env ))
+                                                       (id (cases expresion (cadr exp) (id-exp (id) id) (else #f) ))
+                                                       (val (eval-expresion (caddr exp) env))
+                                                       )
+                                                    (begin
+                                                            (let ((pos (rib-find-position id ids)))
+                                                                 (if (number? pos)
+                                                                  (vector-set! (cadr dic) pos val ) 
+                                                                 "error"))
+                                                            1)                       
+                        ))
+
+                     ;El resto de primitivas
+                     (else
+                       (let ((args (eval-primapp-exp-rands exp env)))
+                       (apply-primitiva prim args env)
+                     )
+                     )
+                   )
+                   
+                   
+                  
+      )
 
       (lista (exp) (let ((args (eval-primapp-exp-rands exp env)))
-                     (apply-lista (list->vector args) )))
+                     (if (not (null? args))
+                     (apply-lista (list->vector args) )
+                     '()
+                     )))
 
       (tupla (exp) (let ((args (eval-primapp-exp-rands exp env)))
-                     (list (car args) (cadr args) )))
+                     (if (not (null? args)) 
+                     (list (car args) (cadr args) )
+                     '())))
 
       (registro (id exp list-id list-exp)
                 (let (
-                      (args (eval-rands list-exp env))
-                      (arg (eval-rand exp env))
+                      (args (eval-primapp-exp-rands list-exp env))
+                      (arg (eval-expresion exp env))
                       )
                      (apply-registro id arg list-id args ))
 
@@ -483,14 +539,6 @@
 
          )         
       )
-
-; for @j =0 to 8 do { 2 } done
-;(let loop ((i 0))
-;  (when (< i 10)
-;    (write i)
-;    (loop (+ 1 i))
-; )
-;)
       
       ;;para objetos
 
@@ -525,6 +573,7 @@
    )
 )
 
+;Para evaluar si hay set en los argumentos de los const
 (define eval-set
   (lambda (rands)
     (cond
@@ -536,43 +585,17 @@
                      (else (eval-set (cdr rands))))]
       )))
 
-(define eval-expresion-bool
-  (lambda (exp-bool env)
-    (cases expresion-bool exp-bool
-      
-      (predicado-no-condicional (pred-prim exp1 exp2)
-                               (apply-pred-prim pred-prim (eval-expresion exp1 env) (eval-expresion exp2 env) ))
-      
-      (predicado-bin-condicional (pred-bin-prim exp1 exp2)
-                                (apply-bin-prim pred-bin-prim (eval-rand-bool exp1 env) (eval-rand-bool exp2 env) ) )
-      
-      (predicado-un-condicional (pred-un-prim exp)
-                                (apply-un-prim pred-un-prim (eval-rand-bool exp env) ))
-
-      )
-    )
-  )
-
-
-
-; funciones auxiliares para aplicar eval-expression-bool a cada elemento de una 
-; lista de operandos (expresiones booleanas)
-(define eval-rand-bool
-  (lambda (rand env)
-    (eval-expresion-bool rand env)))
-
-
-
-
+;Para crear listas
 (define apply-lista
   (lambda (exp)
      exp
     )
   )
 
+;Para crear Registros
 (define apply-registro
   (lambda (id arg list-id args)
-    (list (cons id list-id) (cons arg args))
+    (list (list->vector (cons id list-id)) (list->vector (cons arg args)))
     
     )
   )
@@ -580,6 +603,7 @@
 
 ; funciones auxiliares para aplicar eval-expression a cada elemento de una 
 ; lista de operandos (expresiones)
+
 (define eval-rands
   (lambda (rands env)
     (map (lambda (x) (eval-rand x env)) rands)))
@@ -587,8 +611,6 @@
 (define eval-rand
   (lambda (rand env)
     (cases expresion rand
-      
-
       (lista (exp)
              (indirect-target
                 (let ((ref (apply-env-ref env exp)))
@@ -600,14 +622,10 @@
                    )
                  )
                )
-
-       ) 
+       )
       
       (else
        (direct-target (eval-expresion rand env))))))
-
-
-
 
 (define eval-primapp-exp-rands
   (lambda (rands env)
@@ -622,6 +640,8 @@
   (lambda (rand env)
     (direct-target (eval-expresion rand env))))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;Para evaluar Primitivas ;;;;;;;;;;;;;;;
 
 
 (define apply-primitiva
@@ -648,34 +668,102 @@
       ;para listas y tuplas
       (primitiva-null () '())
       (primitiva-null? () (if (null? (car exps)) #t #f))
-      (primitiva-head () (car (car exps)))
-      (primitiva-tail () (cdr (car exps)))
 
       ;para listas
       (primitiva-lista? () (if (vector? (car exps)) #t #f ))
-      (primitiva-append () (append (car exps) (cadr exps) ))
-      (primitiva-crear-lista () (cons (car exps) (cadr exps) ))
+      (primitiva-append () (list->vector (append (vector->list (car exps)) (vector->list (cadr exps)) ) ))
+      (primitiva-crear-lista () (list->vector (cons (car exps) (vector->list (cadr exps) )) ))
       (primitiva-ref-list () (vector-ref (car exps) (cadr exps)) )
       (primitiva-set-list ()
                           (begin
                             (vector-set! (car exps) (cadr exps) (caddr exps) )
                             1)
       )
+      (primitiva-head-list () (vector-ref (car exps) 0) )
+      (primitiva-tail-list () (begin 
+                                (define a (make-vector (- (vector-length (car exps) ) 1)) )
+                                 (let   loop ((i 0))
+                 
+                                   (when (< i (- (vector-length (car exps) ) 1))
+                                     (vector-set! a i (vector-ref (car exps) (+ i 1) ) )
+                                     (loop (+ 1 i))
+                                   )
+                                  )
+                                 a
+                                )
+                           )
 
       ;para tupla
       (primitiva-tupla? () (if (and (list? (car exps) ) (= (length (car exps)) 2) ) #t #f ))
       (primitiva-crear-tupla () (list (car exps) (cadr exps)) )
       (primitiva-ref-tupla () (list-ref (car exps) (cadr exps)))
+      (primitiva-head () (car (car exps)))
+      (primitiva-tail () (cdr (car exps)))
 
       ;para registro      
-      (primitiva-registro? () #t)
-      ;(primitiva-crear-registro () #t)
-
+      (primitiva-registro? ()
+                           (if (list? (car exps))
+                             (let(
+                                 (len (length (car exps)))
+                                 (ids (caar exps))
+                                 (vals (cadr (car exps)))
+                               )
+                               (if (and (and (= len 2) (vector? ids)) (vector? vals))
+                                 #t
+                                 #f
+                               )
+                              )
+                           #f)   
+                          )
+      (primitiva-crear-registro ()
+                                (let
+                                    ( (id (vector-ref (caar exps) 0))
+                                      (list-id (vector->list (caadr exps)) )
+                                      (arg (vector-ref (cadr (car exps)) 0) )
+                                      (args (vector->list (cadr (cadr exps))) )
+                                     )
+                                
+                                   (apply-registro id arg list-id args )
+                                )
+       )
+      
+      (primitiva-ref-registro () #f ) ;Esta primitiva está implementada en el eval-expresion
+      
+      (primitiva-set-registro () #t );Esta primitiva está implementada en el eval-expresion
+      
       
      
     )
   )
 )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;Para evaluar Booleanos ;;;;;;;;;;;;;;;
+
+(define eval-expresion-bool
+  (lambda (exp-bool env)
+    (cases expresion-bool exp-bool
+      
+      (predicado-no-condicional (pred-prim exp1 exp2)
+                               (apply-pred-prim pred-prim (eval-expresion exp1 env) (eval-expresion exp2 env) ))
+      
+      (predicado-bin-condicional (pred-bin-prim exp1 exp2)
+                                (apply-bin-prim pred-bin-prim (eval-rand-bool exp1 env) (eval-rand-bool exp2 env) ) )
+      
+      (predicado-un-condicional (pred-un-prim exp)
+                                (apply-un-prim pred-un-prim (eval-rand-bool exp env) ))
+
+      )
+    )
+  )
+
+
+
+; funciones auxiliares para aplicar eval-expression-bool a cada elemento de una 
+; lista de operandos (expresiones booleanas)
+(define eval-rand-bool
+  (lambda (rand env)
+    (eval-expresion-bool rand env)))
+
 
 (define apply-pred-prim
   (lambda (prim exp1 exp2)
@@ -734,51 +822,6 @@
 
 
 
-;;;;;;;;;;;;;;;; declarations ;;;;;;;;;;;;;;;;
-
-
-(define class-decl->class-name
-  (lambda (c-decl)
-    (cases class-decl c-decl
-      (a-class-decl (class-name super-name field-ids m-decls)
-        class-name))))
-
-(define class-decl->super-name
-  (lambda (c-decl)
-    (cases class-decl c-decl
-      (a-class-decl (class-name super-name field-ids m-decls)
-        super-name))))
-
-(define class-decl->field-ids
-  (lambda (c-decl)
-    (cases class-decl c-decl
-      (a-class-decl (class-name super-name field-ids m-decls)
-        field-ids))))
-
-(define class-decl->method-decls
-  (lambda (c-decl)
-    (cases class-decl c-decl
-      (a-class-decl (class-name super-name field-ids m-decls)
-        m-decls))))
-
-(define method-decl->method-name
-  (lambda (md)
-    (cases method-decl md
-      (a-method-decl (method-name ids body) method-name))))
-
-(define method-decl->ids
-  (lambda (md)
-    (cases method-decl md
-      (a-method-decl (method-name ids body) ids))))
-
-(define method-decl->body
-  (lambda (md)
-    (cases method-decl md
-      (a-method-decl (method-name ids body) body))))
-
-(define method-decls->method-names
-  (lambda (mds)
-    (map method-decl->method-name mds)))
 
 ;*******************************************************************************************
 ;Ambientes
@@ -818,6 +861,7 @@
               (vector-set! vec pos (direct-target (cerradura ids body env))))
             (iota len) idss bodies)
           env)))))
+
 ;iota: number -> list
 ;función que retorna una lista de los números desde 0 hasta end
 (define iota
@@ -836,11 +880,8 @@
 ;función que busca un símbolo en un ambiente
 (define apply-env
   (lambda (env sym)
-    ;(begin
-     ; (display env)
-      ;(display "jajajaj ")
       (deref (apply-env-ref env sym))))
-    ;)
+
 (define apply-env-ref
   (lambda (env sym)
     (cases environment env
@@ -852,12 +893,24 @@
                                  (a-ref pos vals)
                                  (apply-env-ref env sym)))))))
 
+;**************************************************************************************
+;Definición tipos de datos referencia y blanco
+
+(define-datatype target target?
+  (direct-target (expval expval?))
+  (indirect-target (ref ref-to-direct-target?)))
+
+(define-datatype reference reference?
+  (a-ref (position integer?)
+         (vec vector?)))
+
+
 ;*******************************************************************************************
 ;Blancos y Referencias
 
 (define expval?
   (lambda (x)
-    (or (or (number? x) (procval? x) ) list? x)
+    (or (or (or (number? x) (procval? x) ) list? x) vector? x)
   )
 )
 
@@ -917,6 +970,10 @@
       (a-ref (pos vec)
              (vector-set! vec pos val)))))
 
+(define extend-env-refs
+  (lambda (syms vec env)
+    (extended-env-record syms vec env)))
+
 
 ;****************************************************************************************
 ;Funciones Auxiliares
@@ -943,15 +1000,56 @@
                 (+ list-index-r 1)
                 #f))))))
 
-;^; new for ch 5
-(define extend-env-refs
-  (lambda (syms vec env)
-    (extended-env-record syms vec env)))
-
 ;****************************************************************************************
-;Para Objetos
+;Para la implementacion de Objetos
 
-;****************************************************************************************
+;;;;;;;;;;;;;;;; declarations ;;;;;;;;;;;;;;;;
+
+
+(define class-decl->class-name
+  (lambda (c-decl)
+    (cases class-decl c-decl
+      (a-class-decl (class-name super-name field-ids m-decls)
+        class-name))))
+
+(define class-decl->super-name
+  (lambda (c-decl)
+    (cases class-decl c-decl
+      (a-class-decl (class-name super-name field-ids m-decls)
+        super-name))))
+
+(define class-decl->field-ids
+  (lambda (c-decl)
+    (cases class-decl c-decl
+      (a-class-decl (class-name super-name field-ids m-decls)
+        field-ids))))
+
+(define class-decl->method-decls
+  (lambda (c-decl)
+    (cases class-decl c-decl
+      (a-class-decl (class-name super-name field-ids m-decls)
+        m-decls))))
+
+(define method-decl->method-name
+  (lambda (md)
+    (cases method-decl md
+      (a-method-decl (method-name ids body) method-name))))
+
+(define method-decl->ids
+  (lambda (md)
+    (cases method-decl md
+      (a-method-decl (method-name ids body) ids))))
+
+(define method-decl->body
+  (lambda (md)
+    (cases method-decl md
+      (a-method-decl (method-name ids body) body))))
+
+(define method-decls->method-names
+  (lambda (mds)
+    (map method-decl->method-name mds)))
+
+;**********************************************************************************
 ;;;;;;;;;;;;;;;; class environments ;;;;;;;;;;;;;;;;
 
 ;;; we'll just use the list of class-decls.
@@ -1014,9 +1112,6 @@
   (lambda (parts)
     (part->class-name (car parts))))
 
-
-
-;; evaluar
 (define aux
    (lambda (x)
      x))
@@ -1102,261 +1197,261 @@
        (car m-decls))
       (else (lookup-method-decl m-name (cdr m-decls))))))
 
+
 ;;ejemplos
 
-;lista
-;head([1,2,3])
-;tail([1,2,3])
-;cons(2, [])
-;lista?([3,6,5,8])
-;set-list([3,4,5], 1, 5)
-;ref-list([4,5,6], 0)
+;Expresion- id-exp
+(scan&parse "@x")
 
-;;tuplas
-;tupla[1,2,3]
-;head(tupla[2,3])
-;tail(tupla[1,2])
-;ref-tupla( tupla[1,3], 1)
-;tupla?(tupla[3,4])
-;tupla?([3,4,5])
+;Expresion- false-exp
+(scan&parse "false")
 
-;;registro
-;;{{@a=4}; {@c=5};}
+;Expresion- true-exp
+(scan&parse "true")
 
-;;if
-;if >(6,5) then {3} else {1} end
-;if >=(6,6) then {3} else {1} end
-;if !=(6,6) then {3} else {1} end
-;if and(!=(6,3) , <(3,6)) then {3} else {1} end
-;if and(!=(6,6) , <(3,6)) then {3} else {1} end
-;if or(!=(6,6) , >(3,6)) then {3} else {1} end
-;if or(not(!=(6,6)) , >(3,6)) then {3} else {1} end
+;Expresion- primapp-exp
 
-;;letrec
-;letrec
-;       @sumar(@a,@b) = if !=(@a,0) then { add1(evaluar @sumar(sub1(@a),@b)finEval)} else{ @b } end
-;       in
-;       evaluar @sumar(4,5) finEval
+;Primitiva Print
+(scan&parse "print(@a)")
 
+;Numeros
+(scan&parse "1")
+(scan&parse "-1")
+(scan&parse "1.1")
+(scan&parse "-1.1")
 
-;procedimiento
-;procedimiento (@x,@y,@z) haga +(+(@x,@y),@z) finProc
+;Primitivas Numeros
+(scan&parse "+(1,1)")
+(scan&parse "~(1,1)")
+(scan&parse "/(1,1)")
+(scan&parse "*(1,1)")
+(scan&parse "%(1,1)")
+(scan&parse "add1(1)")
+(scan&parse "sub1(1)")
 
-;var
-;var { @hola = 3 ; } in @hola
-;var { @hola = 3 ;} in var {@hola = 10;} in @hola
-;var {@l = [1,23,3];} in @l
-;var { @lista = [2,3,4,5];} in begin { set-list(@lista, 1, 5); @lista; } end
+;Cadenas
+(scan&parse "\"Cadena\"")
 
-;Begin y set
-;var{ @x = 5;} in begin {set @x = 4; set @x = +(@x, 9); @x;} end
+;Primitivas Cadenas
+;concat("cadena", "hola")
+;longitud("hola")
 
-;var { @lista = [2,3,4,5];
-;      @proc = procedimiento(@l) haga set-list(@l, 0, 10) finProc ;  }
-;in
-;   begin { evaluar @proc(@lista) finEval ; @lista ; } end
+;Listas
+(scan&parse "[1,2,3]")
 
-;var { @num = 4;
-;       @proc = procedimiento(@n) haga set @n=5 finProc ;  }
-;  in
-;    begin { evaluar @proc(@num) finEval ; @num ; } end
+;Primitivas lista
+(scan&parse "lista?([3,6,5,8])")
+(scan&parse "cons(2, [])")
+(scan&parse "append([1,2],[3])")
+(scan&parse "ref-list([4,5,6], 0)")
+(scan&parse "set-list([3,4,5], 1, 5)")
+(scan&parse "var { @lista = [2,3,4,5];} in begin { set-list(@lista, 1, 5); @lista; } end")
+(scan&parse "head-list([1,2,3])")
+(scan&parse "tail-list([4,5,5,6,7])")
+(scan&parse "null?([])")
+(scan&parse "null()")
 
+;Tuplas
+(scan&parse "tupla[1,2,3]")
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;BUCLES;;;;;;;;;;;;;;;;;
+;Primitivas tupla
+(scan&parse "tupla?(tupla[3,4])")
+(scan&parse "crear-tupla(4,5)")
+(scan&parse "ref-tupla( tupla[1,3], 1)")
+(scan&parse "head(tupla[2,3])")
+(scan&parse "tail(tupla[2,3])")
+(scan&parse "null?(tupla[])")
+(scan&parse "null()")
 
-;;;;;;;;;;,FOR ;;;;;;;;;;;;;;;;;
-;for @j =0 to 8 do {  print(@j) } done
+;Registros
+(scan&parse "{{@a=4}; {@c=5};}")
 
-;;;;;;;;;;;;;;;;,WHILE;;;;;;;;;;;;;;;
-;    var {@a=2;}
-;    in
-;    begin
-;    {       while >(@a,0) do
-;            {
-;             begin {
-;             set @a = sub1(@a);
-;             print(5);    
-;             } end    
+;Primitivas registros
+(scan&parse "registro?({{@a=4}; {@c=5};})")
+(scan&parse "registro( {{@a=6};}  , { {@b = 6};{@c=5};} )")
+(scan&parse "ref-registro({{@a=4}; {@c=5};}, @a)")
+(scan&parse "set-registro({{@a=4}; {@c=5};}, @a, 20)")
+(scan&parse "var { @registro = {{@a=4}; {@c=5};} ;} in begin { set-registro(@registro, @a, 20); @registro; } end")
+
+;Expresion- condicional-exp
+(scan&parse "if >(6,5) then {3} else {1} end")
+(scan&parse "if >=(6,6) then {3} else {1} end")
+(scan&parse "if !=(6,6) then {3} else {1} end")
+(scan&parse "if and(!=(6,3) , <(3,6)) then {3} else {1} end")
+(scan&parse "if or(!=(6,6) , >(3,6)) then {3} else {1} end")
+(scan&parse "if or(not(!=(6,6)) , >(3,6)) then {3} else {1} end")
+
+;Expresion- procedimiento-ex
+(scan&parse "procedimiento (@x,@y,@z) haga +(+(@x,@y),@z) finProc")
+
+;Expresion- app-exp
+(scan&parse "evaluar @procedimiento(4,5,1) finEval")
+
+;Expresion- letrec-exp
+(scan&parse "letrec
+             @sumar(@a,@b) = if !=(@a,0) then { add1(evaluar @sumar(sub1(@a),@b)finEval)} else{ @b } end
+             in
+             evaluar @sumar(4,5) finEval")
+
+;Expresion- var-exp
+(scan&parse "var { @hola = 3 ; } in @hola")
+(scan&parse "var { @hola = 3 ;} in var {@hola = 10;} in @hola")
+(scan&parse "var { @lista = [2,3,4,5];} in begin { set-list(@lista, 1, 5); @lista; } end")
+;Paso por referencia
+(scan&parse "var { @lista = [2,3,4,5];
+                   @proc = procedimiento(@l) haga set-list(@l, 0, 10) finProc ;  }
+             in
+             begin { evaluar @proc(@lista) finEval ; @lista ; } end")
+;Paso por valor
+(scan&parse "var { @num = 4;
+                   @proc = procedimiento(@n) haga set @n=5 finProc ;  }
+             in
+             begin { evaluar @proc(@num) finEval ; @num ; } end")
+
+;Expresion- const-exp
+(scan&parse "const{ @c = 5;} in set @c = 6")
+
+;Expresion- secuencia-exp
+(scan&parse "begin {set @a = 4; set @a = +(@a, 9); @a;} end")
+(scan&parse "var{ @x = 5;} in begin {set @x = 4; set @x = +(@x, 9); @x;} end")
+
+;Expresion- set-exp
+(scan&parse "set @a = +(@a, 9)")
+
+;Expresion- while-exp
+(scan&parse "while >(@a,0) do
+            {
+             begin {
+             set @a = sub1(@a);
+             print(5);    
+             } end    
     
-;            } done ;
+            } done ")
+
+(scan&parse "var {@a=2;}
+               in
+                begin{
+                   while >(@a,0) do
+                   {
+                     begin {
+                       set @a = sub1(@a);
+                       print(5);    
+                     }end    
     
-;    } end
+                   } done ;
+    
+                } end")
 
-;class @c1 extends @object
-;        field @x
-;        field @y
+;Expresion- for-exp
+(scan&parse "for @j =0 to 8 do {  print(@j) } done")
 
-;        method @initialize()
-;           begin{
-;           set @x = 1;
-;           set @y = 2;
-;           }end
-;        method @m1() @x
+;Objetos
 
-;        method @m2() @y
-; var
-;  { @o1 = new @c1() ; }
-;  in
-;  send @o1 @m1()
+;class-decl - a-class-decl
+(scan&parse "class @c1 extends @object
+               field @x
+               field @y
 
-;class @c1 extends @object
-;        field @x
-;        field @y
+               method @initialize()
+                 begin{
+                  set @x = 1;
+                  set @y = 2;
+                 }end
+              method @m1() @x
+              method @m2() @y
+            var
+            { @o1 = new @c1() ; }
+            in
+            send @o1 @m1()")
 
-;        method @initialize()
-;           begin{
-;           set @x = 1;
-;           set @y = 2;
-;           }end
-;        method @m1() @x
+;Expresion- new-object-exp
+(scan&parse "new @c1()" )
 
-;        method @m2() @y
+;Expresion-  method-app-exp
+(scan&parse "send @o1 @m1()")
 
-;class @c2 extends @c1
-;        field @x
-;        field @y
+;Expresion- super-call-exp
+(scan&parse "super @initialize (@initx, @inity)")
 
-;        method @initialize()
-;        begin{
-;            set @x = 2 ;
-;            set @y = 3 ;
-;        }end
+;;Ejemplos de objetos:
 
-;        method @m1() @x
-; var{
-; @o1 = new @c1();
-; @o2 = new @c2(); }
-;in
-;send @o2 @m2()
+(scan&parse "class @c2 extends @c1
+                   field @x
+                   field @y
+
+                method @initialize()
+                 begin{
+                  set @x = 2 ;
+                  set @y = 3 ;
+                 }end
+
+                method @m1() @x
+            var{
+             @o1 = new @c1();
+             @o2 = new @c2(); }
+            in
+             send @o2 @m2()")
+
+(scan&parse "class @point extends @object
+                   field @x
+                   field @y
+               method @initialize (@initx, @inity)
+                begin{
+                  set @x = @initx;
+                  set @y = @inity;
+                }end
+
+             class @colorpoint extends @point
+                   field @color
+               method @initialize (@initx, @inity, @initcolor)
+                 begin {
+                  super @initialize (@initx, @inity);
+                  set @color = @initcolor;
+                 }end
+             var{
+               @o1 = new @colorpoint(3,4,5);
+                }
+             in
+              @o1")
+(scan&parse "class @c1 extends @object
+     field @x
+     field @y
+    method @initialize ()
+      begin{
+        set @x = 11;
+        set @y = 12;
+      }end
+    method @m1 () @x
+    method @m2 () send @self @m3()
+
+class @c2 extends @c1
+    field @y
+   method @initialize ()
+    begin{
+      super @initialize();
+      set @y = 22;
+    }end
+   method @m1 (@u) @u
+   method @m3 () 5
+
+class @c3 extends @c2
+    field @x
+    field @z
+   method @initialize ()
+     begin{
+       super @initialize();
+         set @x = 31;
+         set @z = 32;
+     }end
+
+   method @m3 () 3
+
+var {@o2 = new @c2();}
+ in
+send @o2 @m2()
+")
 
 
-;class @point extends @object
-;        field @x
-;        field @y
-;      method @initialize (@initx, @inity)
-;      begin{
-;        set @x = @initx;
-;        set @y = @inity;
-;      }end
 
-;class @colorpoint extends @point
-;      field @color
-;      method @initialize (@initx, @inity, @initcolor)
-;      begin {
-;      super @initialize (@initx, @inity);
-;      set @color = @initcolor;
-;       }end
-; var{
-; @o1 = new @colorpoint(3,4,5);
-;  }
-;in
-; @o1
 
-;class @c1 extends @object
-;      field @x
-;      field @y
-;    method @initialize()
-;      begin{
-;        set @x = 1;
-;        set @y = 2;
-;      }end
-;    method @m1() @x
-;    method @m2() @y
 
-;class @c2 extends @c1
-;      field @x
-;      field @y
-;     method @initialize()
-;       begin{
-;         super @initialize();
-;         set  @x = 2;
-;         set @y = 3;
-;       }end
-;     method @m1() @x
-;var{
-;  @o1 = new @c1();
-;  @o2 = new @c2();}
-;in
-;send @o2 @m2()
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;class @c1 extends @object
-;      field @x
-;      field @y
-;    method @initialize()
-;      begin{
-;        set @x = 1;
-;        set @y = 2;
-;      }end
-;    method @m1() @x
-;    method @m2() begin {set @y=6; @y;} end
-
-;class @c2 extends @c1
-;      field @x
-;      field @y
-;     method @initialize()
-;       begin{
-;         super @initialize();
-;         set  @x = 2;
-;         set @y = 3;
-;       }end
-;     method @m1() @x
-;var{
-;  @o1 = new @c1();
-;  @o2 = new @c2();}
-;in
-;send @o2 @m2()
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;class @c1 extends @object
-;     field @x
-;     field @y
-;    method @initialize ()
-;      begin{
-;        set @x = 11;
-;        set @y = 12;
-;      }end
-;    method @m1 () @x
-;    method @m2 () send @self @m3()
-
-;class @c2 extends @c1
-;    field @y
-;   method @initialize ()
-;    begin{
-;      super @initialize();
-;      set @y = 22;
-;    }end
-;   method @m1 (@u) @u
-;   method @m3 () 5
-
-;class @c3 extends @c2
-;    field @x
-;    field @z
-;   method @initialize ()
-;     begin{
-;       super @initialize();
-;         set @x = 31;
-;         set @z = 32;
-;     }end
-
-;   method @m3 () 3
-
-;var {@o3 = new @c3();}
-; in
-;send @o3 @m1(7)
-
-;var {@o2 = new @c2();}
-; in
-;send @o2 @m2()
-
-;const{ @c = 5;} in set @c = 6
-
-;para encontrar los nombres de los metodos de una clase:
-;(method-decls->method-names (class-decl->method-decls (lookup-class '@c3)))
-
-;busca un metodo en una clase
-;(lookup-method-decl '@m3 (class-decl->method-decls (lookup-class '@c3)))
-;si lo encuentra devuelve la clase si no devuelve #f
-
-;devuelve true si lo que le paso es un metodo
-;(method-decl? (lookup-method-decl '@m3 (class-decl->method-decls (lookup-class '@c3))))
-
-;ver find-methos-and-apply
