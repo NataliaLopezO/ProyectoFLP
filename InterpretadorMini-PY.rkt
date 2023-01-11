@@ -875,7 +875,7 @@
 (define multi-bignum
   (lambda (x y exp)
     (if (null? x)
-        ('())
+        x
         (suma-bignum (multi-bignum (predecessor x exp) y exp) y exp))
     ))
 
