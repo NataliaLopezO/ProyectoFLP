@@ -416,17 +416,7 @@
       
       (controlun-bignum (operador bignums) (apply-prim-una-bignum operador (get-Bignum-estruct bignums) (eval-expresion bignums env)))
   
-      (id-exp (id)(apply-env env id)
-
-;              (let ((var (apply-env env id)))
-;                          (if (list? var)
-;                           (if (part? (car var))
-;                              (begin (find-method-and-apply '@str (object->class-name var) var '()) var)
-;                              var
-;                          )
-;                           var)
-;                   )
-       )
+      (id-exp (id)(apply-env env id)  )
       
       (texto-lit (txt) txt)
 
