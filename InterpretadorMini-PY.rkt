@@ -22,6 +22,9 @@
 ;; <expresion>     ::= <numero>
 ;;                     <numero-lit  (num)>
 
+;;                 ::= crea-bignum( <numero> )
+;;                     <bignum-exp  (num)>
+
 ;;                 := "\""<texto> "\""
 ;;                     <texto-lit (txt)>
 
@@ -127,8 +130,23 @@
 ;;                 ::= <oper-un-bool> (<expresion-bool> )
 ;;                      <predicado-un-condicional expre>
 
+;;<crea-bignum>    ::= x8 (octa-exp)
 
+;;                 ::= x16 (hexa-exp)
 
+;;                 ::= x32 (triges-exp) 
+
+;;<primbin-bignum> := sum-bignum (sum-bignum)
+
+;;                 := sub-bignum (sub-bignum)
+
+;;                 := mult-bignum (mult-bignum)
+
+;;                 := pot-bignum (pot-bignum)
+
+;;<primun-bignum> := succes (succes)
+
+;;                := predes (predes)
 
 ;******************************************************************************************
 
@@ -180,6 +198,13 @@
     ;;Expresion
     
     (expresion (numero)   numero-lit)
+
+    (expresion (crea-bignum "(" (arbno numero) ")") bignum-exp)
+
+    ;Para el manejo primitivas bignum
+    (expresion (primbin-bignum "(" expresion "," "(" (arbno numero) ")" ")") controlbin-bignum)
+    
+    (expresion (primun-bignum "(" expresion ")" ) controlun-bignum)
     
     (expresion (identificador)   id-exp)
 
@@ -239,8 +264,20 @@
     ;;oper-un-bool
     (oper-un-bool ("not") not-oper-bool) 
 
+    ;Primitivas bignum
+    (crea-bignum ("x8") octa-exp)
+    (crea-bignum ("x16") hexa-exp)
+    (crea-bignum ("x32") triges-exp)
+    (primbin-bignum ("sum-bignum") sum-bignum)
+    (primbin-bignum ("sub-bignum") sub-bignum)
+    (primbin-bignum ("mult-bignum") mult-bignum)
+    (primbin-bignum ("pot-bignum") pot-bignum)
+    (primun-bignum ("succes") succes)
+    (primun-bignum ("predes") predes)
     
     ;;Primitiva
+
+    (primitiva ("print-obj") primitiva-print-obj)
 
     (primitiva ("print")   primitiva-print)
 
@@ -340,12 +377,15 @@
   (lambda (pgm)
     (cases programa pgm
       (un-programa (c-decls exp)
+                 (set! lista-constantes '())
                  (elaborate-class-decls! c-decls)
                  (eval-expresion exp (init-env))
       )
     )
   )
 )
+
+
 
 ; Ambiente inicial
 
@@ -369,6 +409,12 @@
     (cases expresion exp
      
       (numero-lit (numero) numero)
+
+      (bignum-exp (exponente numeros) numeros)
+
+      (controlbin-bignum (operador rands1 rands2) (apply-prim-bin-bignum operador (get-Bignum-estruct rands1) rands1 rands2 env))
+      
+      (controlun-bignum (operador bignums) (apply-prim-una-bignum operador (get-Bignum-estruct bignums) (eval-expresion bignums env)))
   
       (id-exp (id)(apply-env env id)
 
@@ -480,27 +526,23 @@
        )
 
       (const-exp (ids rands body)
-                 (begin 
-                   (eval-set rands)
-                   (cases expresion body
-                     (set-exp (id exp) (eopl:error 'evaluar-expresion
-                                              "No es posible modificar una constante"))
-                     (else (let ((args (eval-let-exp-rands rands env)))
-                             (eval-expresion body (extend-env ids args env))
-                             )
-                     )
-
+                 (begin
+                   (set! lista-constantes (append lista-constantes ids))
+                   (let ((args (eval-let-exp-rands rands env)))
+                     (eval-expresion body (extend-env ids args env)))
                    )
-
-                 )
-      )
+               )
 
       (set-exp (id rhs-exp)
                (begin
-                 (setref!
+                 (cond
+                   [(buscar-elemento lista-constantes id) (eopl:error 'eval-expresion
+                                 "No es posible modificar una constante" )]
+                   [else (setref!
                   (apply-env-ref env id)
-                  (eval-expresion rhs-exp env))
-                 1))
+                  (eval-expresion rhs-exp env))])
+                 1
+                 ))
       
       
       (secuencia-exp (exp exps) 
@@ -585,6 +627,22 @@
                      (else (eval-set (cdr rands))))]
       )))
 
+(define lista-constantes '())
+
+;;Devuelve true si encuentra un elemento en una lista si no devuelve false 
+
+(define buscar-elemento
+  (lambda (lista elemento)
+    (cond
+      [(null? lista) #f]
+      [else
+       (if(eqv? (car lista) elemento) #t
+          (buscar-elemento (cdr lista) elemento))]
+  )
+ )
+)
+
+
 ;Para crear listas
 (define apply-lista
   (lambda (exp)
@@ -648,6 +706,8 @@
   (lambda (prim exps env)
     
     (cases primitiva prim
+
+      (primitiva-print-obj () (print-obj exps) )
 
       (primitiva-print () (display (car exps) ) ) 
       
@@ -736,6 +796,106 @@
     )
   )
 )
+
+;----------- Para mostrar objetos-----------;
+
+(define print-obj
+  (lambda (value)
+    (map
+     (lambda (x)
+       (cases part x
+         (a-part (class-name fields) fields)
+        ) 
+     )
+     (car value) )
+    
+   )
+)
+
+
+;----------- Bignum -----------
+;Para obtener el exponente de dato Bignum
+(define get-Bignum-estruct
+  (lambda (exp)
+    (cases expresion exp
+      (bignum-exp (exponente numeros) (get-exponente exponente))
+      (else (eopl:error 'get-Bignum "No es un exponente ~s" exp)))))
+
+;Para obtener exponente
+(define get-exponente
+  (lambda (estruct)
+    (cases crea-bignum estruct
+                    (octa-exp () 8)
+                    (hexa-exp () 16)
+                    (triges-exp () 32))))
+
+;Primitivas unarias bignum
+(define apply-prim-una-bignum
+  (lambda (oper exp numeros)
+    (cases primun-bignum oper
+      (predes () (predecessor numeros exp))
+      (succes () (successor numeros exp)))))
+
+;Primitivas binarias bignum
+(define apply-prim-bin-bignum
+  (lambda (oper exp lista1 lista2 amb)
+    (cases primbin-bignum oper
+      (sum-bignum () (suma-bignum (eval-expresion lista1 amb) lista2 exp))
+      (sub-bignum () (resta-bignum (eval-expresion lista1 amb) lista2 exp))
+      (mult-bignum () (multi-bignum (eval-expresion lista1 amb) lista2 exp))
+      (pot-bignum () (potencia-bignum (eval-expresion lista1 amb) lista2 exp)))))
+
+;Proposito: Constructor de Bignum encargado de devolver el siguiente numero de un Bignum.
+;Recibe una lista que representa un Bignum y devuelve el siguiente de este, Bignum+1.
+(define successor (lambda (n max)
+                   (cond
+                     [(null? n) (cons 1 empty)]
+                     [(< (car n) max) (cons (+ (car n) 1)(cdr n))]
+                     [else (cons 1 (successor (cdr n) max))]
+                     )))
+
+;Proposito: Constructor de Bignum encargado de devolver el numero anterior de un Bignum.
+;Recibe una lista que representa un Bignum y devuelve el anterior de este, Bignum-1.
+(define predecessor (lambda (n max)
+                      (cond
+                        [(eqv? n empty) eopl:error 'top "No tiene predecesor"]
+                        [(and (eqv? (car n) 1) (eqv? (cdr n) empty)) empty]
+                        [(> (car n) 1) (cons (- (car n) 1)(cdr n))]
+                        [else (cons max (predecessor (cdr n) max))]
+                        )))
+
+;Proposito: sumar dos numeros tipo bignum
+;Recibe dos numeros bignum positivos y retorna la suma de estos
+(define suma-bignum
+  (lambda (x y exp)
+    (if (null? x)
+        y
+        (successor (suma-bignum (predecessor x exp) y exp) exp))))
+
+;Proposito: restar dos numeros
+;Recibe dos numeros bignum positivos (x y), con x mayor que y, y retorna la resta de estos
+(define resta-bignum
+  (lambda (x y exp)
+    (if (null? y)
+        x
+        (predecessor (resta-bignum  x (predecessor y exp) exp) exp))))
+
+;Proposito: multiplicar dos numeros tipo bignum
+;Recibe dos numeros bignum positivos y retorna la multiplicacion de estos
+(define multi-bignum
+  (lambda (x y exp)
+    (if (null? x)
+        ('())
+        (suma-bignum (multi-bignum (predecessor x exp) y exp) y exp))
+    ))
+
+;Proposito: elevar un numero n a la potencia m
+;Recibe dos numeros bignum ( n m ) y retorna la potencia con n como base y m como exponente
+(define potencia-bignum
+  (lambda (x y exp)
+    (if (null? y)
+        (successor y exp)
+        (multi-bignum (potencia-bignum x (predecessor y exp) exp) x exp))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;Para evaluar Booleanos ;;;;;;;;;;;;;;;
 
@@ -910,7 +1070,7 @@
 
 (define expval?
   (lambda (x)
-    (or (or (or (number? x) (procval? x) ) list? x) vector? x)
+    (or (or (number? x) (procval? x) ) list? x) 
   )
 )
 
@@ -1215,10 +1375,11 @@
 (scan&parse "print(@a)")
 
 ;Numeros
-(scan&parse "1")
+ 
 (scan&parse "-1")
 (scan&parse "1.1")
 (scan&parse "-1.1")
+
 
 ;Primitivas Numeros
 (scan&parse "+(1,1)")
@@ -1228,6 +1389,16 @@
 (scan&parse "%(1,1)")
 (scan&parse "add1(1)")
 (scan&parse "sub1(1)")
+
+;BigNum
+(scan&parse "x8(1 1 1)")
+(scan&parse "x16(1 1 1)")
+(scan&parse "x32(1 1 1)")
+
+;Primitivas para BigNum
+(scan&parse "predes(x8(1 1 1))")
+(scan&parse "predes(x8(1))")
+(scan&parse "succes(x8(1 1 1))")
 
 ;Cadenas
 (scan&parse "\"Cadena\"")
@@ -1375,22 +1546,6 @@
 
 ;;Ejemplos de objetos:
 
-(scan&parse "class @c2 extends @c1
-                   field @x
-                   field @y
-
-                method @initialize()
-                 begin{
-                  set @x = 2 ;
-                  set @y = 3 ;
-                 }end
-
-                method @m1() @x
-            var{
-             @o1 = new @c1();
-             @o2 = new @c2(); }
-            in
-             send @o2 @m2()")
 
 (scan&parse "class @point extends @object
                    field @x
@@ -1451,7 +1606,40 @@ var {@o2 = new @c2();}
 send @o2 @m2()
 ")
 
+(scan&parse "class @c1 extends @object
+     field @x
+     field @y
+    method @initialize ()
+      begin{
+        set @x = 11;
+        set @y = 12;
+      }end
+    method @m1 () @x
+    method @m2 () send @self @m3()
 
+class @c2 extends @c1
+    field @y
+   method @initialize ()
+    begin{
+      super @initialize();
+      set @y = 22;
+    }end
+   method @m1 (@u) @u
+   method @m3 () 5
 
+class @c3 extends @c2
+    field @x
+    field @z
+   method @initialize ()
+     begin{
+       super @initialize();
+         set @x = 31;
+         set @z = 32;
+     }end
 
+   method @m3 () 3
+
+var {@o2 = new @c2();}
+ in
+print-obj(@o2) ")
 
