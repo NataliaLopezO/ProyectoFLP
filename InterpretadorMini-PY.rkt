@@ -470,7 +470,7 @@
       (lista (exp) (let ((args (eval-primapp-exp-rands exp env)))
                      (if (not (null? args))
                      (apply-lista (list->vector args) )
-                     '()
+                     #()
                      )))
 
       (tupla (exp) (let ((args (eval-primapp-exp-rands exp env)))
