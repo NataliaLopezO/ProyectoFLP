@@ -107,6 +107,7 @@
 ;;                 ::= lista? (primitiva-lista?)
 ;;                 ::= tupla? (primitiva-tupla?)
 ;;                 ::= registro? (primitiva-registro?)
+;;                 ::= len (primitiva-len)
 
 ;; <pred-prim>     ::= < (pred-prim-menor)
 ;;                 ::= > (pred-prim-mayor)
@@ -309,6 +310,7 @@
     (primitiva ("set-list") primitiva-set-list)
     (primitiva ("head-list") primitiva-head-list)
     (primitiva ("tail-list") primitiva-tail-list)
+    (primitiva ("len") primitiva-len)
     ;falta tail
 
     ;;primiiva tupla
@@ -742,6 +744,7 @@
                                  a
                                 )
                            )
+      (primitiva-len () (vector-length (car exps)) )
 
       ;para tupla
       (primitiva-tupla? () (if (and (list? (car exps) ) (= (length (car exps)) 2) ) #t #f ))
